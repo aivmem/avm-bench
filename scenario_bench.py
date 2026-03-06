@@ -134,7 +134,7 @@ class ScenarioBenchmark:
                     break
                 
                 # Get linked nodes
-                links = avm.links(path, direction="outgoing")
+                links = avm.links(path, direction="out")
                 for link in links:
                     if link.target not in visited:
                         next_paths.append(link.target)
@@ -319,8 +319,8 @@ class ScenarioBenchmark:
             chain = [current]
             
             for _ in range(5):  # Max 5 hops back
-                links = avm.links(current, direction="incoming")
-                derived_links = [l for l in links if l.edge_type == "derived"]
+                links = avm.links(current, direction="in")
+                derived_links = [l for l in links if l.edge_type.value == "derived"]
                 if not derived_links:
                     break
                 current = derived_links[0].source
