@@ -67,6 +67,32 @@ Summary:
 ============================================================
 ```
 
+## Quality Benchmarks
+
+```bash
+python quality_bench.py
+```
+
+| Metric | Description |
+|--------|-------------|
+| Recall Precision | F1 score - correct memories returned |
+| Token Efficiency | Compression ratio |
+| Relevance Ranking | NDCG - ranking quality |
+| Importance Filtering | High priority ratio |
+
+## Scenario Benchmarks
+
+```bash
+python scenario_bench.py
+```
+
+| Scenario | Description |
+|----------|-------------|
+| Graph Discovery | Navigate links to find target (no keyword match) |
+| Multi-Agent Isolation | Private memories stay private |
+| Cold Start | Discover KB structure with topics() |
+| Chain Reasoning | Reconstruct derivation chains |
+
 ## Requirements
 
 - Python 3.10+
