@@ -2,96 +2,133 @@
 
 Performance benchmarks for [AVM](https://github.com/aivmem/avm) (AI Virtual Memory).
 
-## Scenarios
+## Key Result: 89% Token Savings
 
-| Benchmark | Description |
-|-----------|-------------|
-| Write Throughput | Bulk memory creation with tags and importance |
-| Read Throughput | Sequential and random path reads |
-| Recall Performance | Semantic search with token budgets |
-| Knowledge Graph | Link creation and graph traversal |
-| Multi-Agent | Concurrent access from 4 agents |
+AVM trades minimal compute for massive token reduction:
+
+```
+======================================================================
+Token Usage Comparison:
+----------------------------------------------------------------------
+Benchmark              AVM Tokens     Baseline    Reduction
+----------------------------------------------------------------------
+Recall                       1050         3600        +2550
+Context Building               16         1953        +1937
+Knowledge Lookup               69         2458        +2389
+----------------------------------------------------------------------
+TOTAL                        1135         8011        +6876
+
+💰 Token savings: 89% = lower LLM costs
+======================================================================
+```
+
+## Benchmarks
+
+| Suite | Description |
+|-------|-------------|
+| `bench.py` | Performance throughput |
+| `quality_bench.py` | Recall quality metrics |
+| `scenario_bench.py` | Real-world scenarios |
+| `compare_bench.py` | AVM vs baseline comparison |
 
 ## Usage
 
 ```bash
-# Default (scale=100)
-python bench.py
+# Performance benchmarks
+python bench.py -s 100
 
-# Larger scale
-python bench.py -s 1000
+# Quality benchmarks  
+python quality_bench.py -s 50
 
-# Verbose
-python bench.py -s 500 -v
+# Scenario benchmarks
+python scenario_bench.py
+
+# Comparison (key metric: token savings)
+python compare_bench.py
 ```
 
-## Sample Output
+## Performance Results (scale=50)
 
 ```
-============================================================
-AVM Benchmark Suite (scale=100)
-============================================================
-
-[1/5] Write Throughput (100 memories)...
-      Done: 523.4 ops/sec
-
-[2/5] Read Throughput (100 reads)...
-      Done: 12453.2 ops/sec
-
-[3/5] Recall Performance (100 queries)...
-      Done: 89.3 ops/sec
-
-[4/5] Knowledge Graph (100 operations)...
-      Done: 1234.5 ops/sec
-
-[5/5] Multi-Agent Concurrency (100 ops, 4 agents)...
-      Done: 456.7 ops/sec
-
 ============================================================
 BENCHMARK REPORT
 ============================================================
 
-Benchmark            Ops      ops/s      Avg      P50      P95      P99
+Benchmark                 Ops      ops/s      Avg      P50      P95      P99
 -------------------- -------- ---------- -------- -------- -------- --------
-Write Throughput          100      523.4    1.91ms   1.85ms   2.34ms   2.89ms
-Read Throughput           100    12453.2    0.08ms   0.07ms   0.12ms   0.15ms
-Recall Performance        100       89.3   11.20ms  10.85ms  15.23ms  18.45ms
-Knowledge Graph           100     1234.5    0.81ms   0.78ms   1.12ms   1.35ms
-Multi-Agent               100      456.7    2.19ms   2.05ms   3.45ms   4.12ms
+Write Throughput           50     1198.9    0.83ms    0.81ms    1.01ms    0.00ms
+Read Throughput            50    11697.3    0.08ms    0.08ms    0.09ms    0.00ms
+Recall Performance         50     2914.0    0.34ms    0.13ms    0.94ms    0.00ms
+Knowledge Graph            50     2736.7    0.36ms    0.35ms    0.45ms    0.00ms
+Multi-Agent                48      622.4    5.39ms    0.94ms   29.38ms    0.00ms
 
 ============================================================
 Summary:
-  Total operations: 500
-  Total time: 1.23s
-  Overall throughput: 406.5 ops/sec
+  Total operations: 248
+  Overall throughput: 1564.4 ops/sec
 ============================================================
 ```
 
-## Quality Benchmarks
+## Scenario Results
 
-```bash
-python quality_bench.py
 ```
+======================================================================
+SCENARIO REPORT
+======================================================================
+
+Scenario                   Success     Metric         Time
+----------------------------------------------------------------------
+Graph Discovery                  ✓          4       36.3ms
+  └─ hops_to_target: 4
+  └─ ms_per_hop: 9.08
+Multi-Agent Isolation            ✓       1.00        2.7ms
+  └─ isolation_correct: True
+Cold Start                       ✓          6       98.8ms
+  └─ coverage: 100%
+Chain Reasoning                  ✓       1.00       22.9ms
+  └─ completeness: 100%
+
+======================================================================
+Scenario Success Rate: 100%
+======================================================================
+```
+
+## Metrics
+
+### Performance (`bench.py`)
 
 | Metric | Description |
 |--------|-------------|
-| Recall Precision | F1 score - correct memories returned |
+| Write Throughput | Bulk memory creation |
+| Read Throughput | Sequential/random reads |
+| Recall Performance | Semantic search |
+| Knowledge Graph | Link creation/traversal |
+| Multi-Agent | Concurrent access |
+
+### Quality (`quality_bench.py`)
+
+| Metric | Description |
+|--------|-------------|
+| Recall Precision | F1 score |
 | Token Efficiency | Compression ratio |
-| Relevance Ranking | NDCG - ranking quality |
+| Relevance Ranking | NDCG |
 | Importance Filtering | High priority ratio |
 
-## Scenario Benchmarks
-
-```bash
-python scenario_bench.py
-```
+### Scenarios (`scenario_bench.py`)
 
 | Scenario | Description |
 |----------|-------------|
-| Graph Discovery | Navigate links to find target (no keyword match) |
+| Graph Discovery | Navigate links without keyword match |
 | Multi-Agent Isolation | Private memories stay private |
-| Cold Start | Discover KB structure with topics() |
+| Cold Start | Discover KB structure |
 | Chain Reasoning | Reconstruct derivation chains |
+
+### Comparison (`compare_bench.py`)
+
+| Metric | Description |
+|--------|-------------|
+| Token Savings | % reduction vs dumping all content |
+| Time | Compute overhead |
 
 ## Requirements
 
