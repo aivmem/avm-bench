@@ -10,6 +10,7 @@ Real-world scenarios:
 
 import os
 import sys
+import time
 import tempfile
 import random
 import hashlib
@@ -33,6 +34,7 @@ class ScenarioResult:
     name: str
     success: bool
     metric: float
+    elapsed_ms: float
     details: Dict
 
 
@@ -64,6 +66,8 @@ class ScenarioBenchmark:
         Metric: Number of hops to find target
         """
         print("[1/4] Graph Discovery (no keyword cheating)...")
+        
+        t_start = time.perf_counter()
         
         avm = AVM()
         mem = avm.agent_memory("explorer")
@@ -142,17 +146,21 @@ class ScenarioBenchmark:
             if not found:
                 current_paths = next_paths
         
+        elapsed_ms = (time.perf_counter() - t_start) * 1000
+        
         self.results.append(ScenarioResult(
             name="Graph Discovery",
             success=found,
             metric=hops if found else -1,
+            elapsed_ms=elapsed_ms,
             details={
                 "hops_to_target": hops,
                 "nodes_visited": len(visited),
                 "found": found,
+                "ms_per_hop": elapsed_ms / hops if hops > 0 else 0,
             }
         ))
-        print(f"      Found in {hops} hops, visited {len(visited)} nodes\n")
+        print(f"      Found in {hops} hops, {elapsed_ms:.1f}ms\n")
     
     def bench_multi_agent_collab(self):
         """
@@ -166,6 +174,8 @@ class ScenarioBenchmark:
         Metric: Isolation correctness
         """
         print("[2/4] Multi-Agent Isolation...")
+        
+        t_start = time.perf_counter()
         
         avm = AVM()
         agent_a = avm.agent_memory("agent_a")
@@ -191,10 +201,13 @@ class ScenarioBenchmark:
         isolation_correct = (a_sees_own and not a_sees_other and 
                             b_sees_own and not b_sees_other)
         
+        elapsed_ms = (time.perf_counter() - t_start) * 1000
+        
         self.results.append(ScenarioResult(
             name="Multi-Agent Isolation",
             success=isolation_correct,
             metric=1.0 if isolation_correct else 0.0,
+            elapsed_ms=elapsed_ms,
             details={
                 "a_sees_own": a_sees_own,
                 "a_leak": a_sees_other,
@@ -203,7 +216,7 @@ class ScenarioBenchmark:
                 "isolation_correct": isolation_correct,
             }
         ))
-        print(f"      Isolation: {'✓' if isolation_correct else '✗'}\n")
+        print(f"      Isolation: {'✓' if isolation_correct else '✗'}, {elapsed_ms:.1f}ms\n")
     
     def bench_cold_start(self):
         """
@@ -217,6 +230,8 @@ class ScenarioBenchmark:
         Metric: Topic discovery coverage
         """
         print("[3/4] Cold Start Discovery...")
+        
+        t_start = time.perf_counter()
         
         avm = AVM()
         mem = avm.agent_memory("cold_start")
@@ -254,18 +269,22 @@ class ScenarioBenchmark:
         
         coverage = len(discovered_topics) / len(topics)
         
+        elapsed_ms = (time.perf_counter() - t_start) * 1000
+        
         self.results.append(ScenarioResult(
             name="Cold Start",
             success=coverage > 0.8,
             metric=queries,
+            elapsed_ms=elapsed_ms,
             details={
                 "queries_used": queries,
                 "topics_discovered": len(discovered_topics),
                 "total_topics": len(topics),
                 "coverage": coverage,
+                "ms_per_query": elapsed_ms / queries if queries > 0 else 0,
             }
         ))
-        print(f"      {queries} queries for {coverage:.0%} coverage\n")
+        print(f"      {queries} queries, {coverage:.0%} coverage, {elapsed_ms:.1f}ms\n")
     
     def bench_chain_reasoning(self):
         """
@@ -279,6 +298,8 @@ class ScenarioBenchmark:
         Metric: Chain completeness
         """
         print("[4/4] Chain Reasoning...")
+        
+        t_start = time.perf_counter()
         
         avm = AVM()
         mem = avm.agent_memory("reasoner")
@@ -332,30 +353,34 @@ class ScenarioBenchmark:
         
         completeness = chains_complete / total_chains
         
+        elapsed_ms = (time.perf_counter() - t_start) * 1000
+        
         self.results.append(ScenarioResult(
             name="Chain Reasoning",
             success=completeness > 0.8,
             metric=completeness,
+            elapsed_ms=elapsed_ms,
             details={
                 "chains_complete": chains_complete,
                 "total_chains": total_chains,
                 "completeness": completeness,
+                "ms_per_chain": elapsed_ms / total_chains,
             }
         ))
-        print(f"      {chains_complete}/{total_chains} chains reconstructed\n")
+        print(f"      {chains_complete}/{total_chains} chains, {elapsed_ms:.1f}ms\n")
     
     def print_report(self):
-        print("="*60)
+        print("="*70)
         print("SCENARIO REPORT")
-        print("="*60 + "\n")
+        print("="*70 + "\n")
         
-        print(f"{'Scenario':<25} {'Success':>8} {'Metric':>10}")
-        print("-"*60)
+        print(f"{'Scenario':<25} {'Success':>8} {'Metric':>10} {'Time':>12}")
+        print("-"*70)
         
         for r in self.results:
             status = "✓" if r.success else "✗"
             metric_str = f"{r.metric:.2f}" if isinstance(r.metric, float) else str(r.metric)
-            print(f"{r.name:<25} {status:>8} {metric_str:>10}")
+            print(f"{r.name:<25} {status:>8} {metric_str:>10} {r.elapsed_ms:>10.1f}ms")
             for k, v in r.details.items():
                 if isinstance(v, float):
                     print(f"  └─ {k}: {v:.2f}")
@@ -363,9 +388,11 @@ class ScenarioBenchmark:
                     print(f"  └─ {k}: {v}")
         
         success_rate = sum(1 for r in self.results if r.success) / len(self.results)
-        print("\n" + "="*60)
+        total_time = sum(r.elapsed_ms for r in self.results)
+        print("\n" + "="*70)
         print(f"Scenario Success Rate: {success_rate:.0%}")
-        print("="*60 + "\n")
+        print(f"Total Time: {total_time:.1f}ms")
+        print("="*70 + "\n")
 
 
 if __name__ == "__main__":
